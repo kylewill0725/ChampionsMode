@@ -1,0 +1,23 @@
+{
+  "ManifestVersion": 2,
+  "AuthorName": "Qwyll",
+  "Name": "Qwyll-ChampionsMode",
+  "DisplayName": "Champions Game Mode",
+  "Version": "1.0.0",
+  "Licence": "MIT",
+  "WebsiteURL": "",
+  "Description": "",
+  "GameVersion": "4892828",
+  "Dependencies": [
+    "tristanmcpherson-R2API-2.4.29"
+  ],
+  "OptionalDependencies": [],
+  "Incompatibilities": [],
+  "NetworkMode": "both",
+  "PackageType": "mod",
+  "InstallMode": "managed",
+  "Loaders": [
+    "bepinex"
+  ],
+  "ExtraData": {}
+}

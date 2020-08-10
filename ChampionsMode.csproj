@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Update="manifest.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\libs\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="BepInEx, Version=5.0.1.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\libs\BepInEx.dll</HintPath>
+      </Reference>
+      <Reference Include="MMHOOK_Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\libs\MMHOOK_Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="R2API, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\libs\R2API.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\libs\UnityEngine.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\libs\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+    
+    <UsingTask TaskName="IncrementBuildTask" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <Task>
+            <Using Namespace="System" />
+            <Using Namespace="System.IO" />
+            <Using Namespace="System.Text.RegularExpressions" />
+            <Code Type="Fragment" Language="cs">
+                <![CDATA[
+                
+                var text = File.ReadAllText("Gen.cs");
+                var MatchExpression = @"MAJOR = ""(?'major'\d+)";
+                var major = int.Parse(Regex.Match(text, MatchExpression).Groups["major"].Value);
+                MatchExpression = @"MINOR = ""(?'minor'\d+)";
+                var minor = int.Parse(Regex.Match(text, MatchExpression).Groups["minor"].Value);
+                MatchExpression = @"BUILD = ""(?'build'\d+)";
+                var build = int.Parse(Regex.Match(text, MatchExpression).Groups["build"].Value) + 1;
+                File.WriteAllText(
+                    "Gen.cs",
+                    Regex.Replace(text, MatchExpression, $@"BUILD = ""{build}")
+                );
+                
+                File.WriteAllText(
+                "manifest.json",
+                Regex.Replace(File.ReadAllText("manifest.json"), @"""Version"": ""[.\d]+", $@"""Version"": ""{major}.{minor}.{build}")
+                );
+            ]]>
+            </Code>
+        </Task>
+    </UsingTask>
+
+    <Target Name="IncrementBuild" BeforeTargets="BeforeBuild">
+        <IncrementBuildTask />
+        <Message IsCritical="true" Text="Build number updated." />
+    </Target>
+
+    <Target Name="ZipPublish" AfterTargets="Publish">
+        <ZipDirectory Overwrite="true" DestinationFile="$(PublishDir)/../$(MSBuildProjectName).zip" SourceDirectory="$(PublishDir)" />
+    </Target>
+</Project>
